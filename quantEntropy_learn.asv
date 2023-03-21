@@ -7,20 +7,19 @@ n = 4;   % max degree of data
 N = 200; % number of points
 
 X = cell(N,1);        % matrix whose col's are data points
+f_vals = zeros(N,1);  % function values on data
 dim_arr = zeros(N,1); % dimension / degree of each data point
 for ii = 1:N
-   dim = randi(n); % random dimension
+   dim = randi(n);                              % random dimension
    dim_arr(ii)=dim;
 
    M = randn(dim); M = M*M'; M = M./norm(M(:)); % random unit-F-norm PSD matrix
     
-   % evaluate function to be estimated:
-   f_curr = trace((M+trace(M)*eye(dim))*logm((M./trace(M)+eye(dim)))); 
-   M = M./f_curr; % normalize data 
-   
+   f_vals(ii) = trace((M+trace(M)*eye(dim))*logm((M./trace(M)+eye(dim)))); % evaluate function to be estimated
+   M = M./f_vals(ii);                                                      % normalize data 
+   f_vals(ii) = 1;
    X{ii} = M(:);
 end
-f_vals = ones(N,1);  % function values on (normalized) data
 
 %% Set up description spaces
 % We use description spaces U = Sym^2(Sym^{\leq k_U}(R^n)) and 
@@ -29,6 +28,11 @@ k_U = 2;
 k_W = 1; 
 
 d_V = 2; d_U = 2*k_U; d_W = 2*k_W; % generation degrees
+
+x = sdpvar(n,1);
+m_U = monolist(x, k_U); m_W = monolist(x,k_W);                       % monomials in x of degree <= k
+N_U = length(m_U); N_W = length(m_W);                                % size of matrices in U and W
+deg_list_U = get_deg_list(m_U, x); deg_list_W = get_deg_list(m_W,x); % multi-degrees for each monomial
 
 % get discrete and continuous generators for O(n):
 Pi = zeros(n,n,nchoosek(n,2)+1);
@@ -44,11 +48,6 @@ end
 Pi(:,:,end) = eye(n); Pi(1,1,end) = -1; % discrete generator
 
 % generate matrix representations for action on polynomials
-x = sdpvar(n,1);
-m_U = monolist(x, k_U); m_W = monolist(x,k_W);                       % monomials in x of degree <= k
-N_U = length(m_U); N_W = length(m_W);                                % size of matrices in U and W
-deg_list_U = get_deg_list(m_U, x); deg_list_W = get_deg_list(m_W,x); % multi-degrees for each monomial
-
 Pi_U = zeros(N_U, N_U, size(Pi,3));
 Pi_U(:,:,1:idx_cont) = gen_deriv_map(Pi(:,:,1:idx_cont), x, m_U, deg_list_U);      % get action of Lie algebra
 Pi_U(:,:,idx_cont+1:end) = gen_algebra_map(Pi(:,:,idx_cont+1:end), x, deg_list_U); % get action of discrete generators
@@ -143,7 +142,12 @@ ops = sdpsettings('solver','mosek','verbose',0); % make non-verbose
 %% Extend description to higher dimension
 m = 20; % dimension to which to extend
 
-% Set up higher-dim. description spaces:
+% Set up higher-dim. description spaces
+x_b = sdpvar(m, 1); 
+m_U_b = monolist(x_b, k_U); m_W_b = monolist(x_b, k_W);
+N_U_b = length(m_U_b); N_W_b = length(m_W_b);
+deg_list_big_U = get_deg_list(m_U_b, x_b);
+deg_list_big_W = get_deg_list(m_W_b, x_b);
 
 % Group action on description space
 % (suffices to consider only permutations to guarantee unique extension)
@@ -152,12 +156,6 @@ Pi(:,:,1) = eye(m); Pi(:,[1,2],1) = Pi(:,[2,1],1);
 Pi(:,:,2) = eye(m); Pi(:,:,2) = Pi(:, [m,1:m-1],2);
 
 % group action on monomials
-x_b = sdpvar(m, 1); 
-m_U_b = monolist(x_b, k_U); m_W_b = monolist(x_b, k_W);
-N_U_b = length(m_U_b); N_W_b = length(m_W_b);
-deg_list_big_U = get_deg_list(m_U_b, x_b);
-deg_list_big_W = get_deg_list(m_W_b, x_b);
-
 Pi_U = gen_algebra_map(Pi, x_b, deg_list_big_U);
 Pi_W = gen_algebra_map(Pi, x_b, deg_list_big_W);
 
@@ -236,7 +234,8 @@ for n_small = 1:m
 end
 % save('...','err_arr')
 
-%% Plot error vs. dim with and without compatibility
+%% Plot gen. error w/ and w/o ext.
+
 % load('...','err_arr') % load errors without extendability
 % figure, plot(err_arr, 'linewidth', 4) 
 % 
@@ -260,6 +259,6 @@ deg_list_small = get_deg_list(monolist(x_small,k),x_small); % list of degrees fo
 
 psi = gen_algebra_map(phi, x_small, deg_list_small); % action of embeddings on monomials
 
-phi = sparse(phi);
-phi = kron(phi,phi); psi = kron(psi,psi); % form embeddings acting on matrices
+% form embeddings acting on matrices
+phi = kron(sparse(phi),sparse(phi)); psi = kron(sparse(psi),sparse(psi));
 end
