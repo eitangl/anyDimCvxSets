@@ -9,3 +9,5 @@ Please install these packages and add them to MATLAB's path.
 ## Main functions
 1. Script to learn an SDP approximation of $\ell_p$ norms: [LpNorm_learn](/LpNorm_learn.m)
 2. Script to learn an SDP approximation of (variant of) quantum entropy: [quantEntropy_learn](/quantEntropy_learn.m)
+
+In case of issues or questions, please email Eitan (eitanl@caltech.edu)
