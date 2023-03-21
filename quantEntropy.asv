@@ -120,7 +120,7 @@ end
 
 %% Fit description to data
 num_alts = 500;  % max number of alternations
-num_inits = 100; % number of initializations
+num_inits = 2; % number of initializations
 
 % terminate alternation when relative change in error is below threshold
 % for a number of consecutive iterations:
@@ -140,7 +140,7 @@ ops = sdpsettings('solver','mosek','verbose',0); % make non-verbose
     err_rel_tol, err_consec_iter_bnd, ops);
 
 %% Extend description to higher dimension
-m = 20; % dimension to which to extend
+m = 10; % dimension to which to extend
 
 % Set up higher-dim. description spaces
 x_b = sdpvar(m, 1); 
@@ -151,8 +151,9 @@ deg_list_big_W = get_deg_list(m_W_b, x_b);
 
 % Group action on description space
 % (suffices to consider only permutations to guarantee unique extension)
-Pi = zeros(m,m,2);
+Pi = zeros(m,m,3);
 Pi(:,:,1) = eye(m); Pi(:,[1,2],1) = Pi(:,[2,1],1);
+Pi(:,:,2) = eye(m); Pi(:,:,2) = Pi(:, [m,1:m-1],2);
 Pi(:,:,2) = eye(m); Pi(:,:,2) = Pi(:, [m,1:m-1],2);
 
 % group action on monomials
@@ -232,22 +233,22 @@ for n_small = 1:m
     end
     err_arr(n_small) = mean(abs(f_true_test - f_pred_test)./f_true_test); % save mean relative error
 end
-% save('...','err_arr')
+% save('quantEnt_err_plot_noExt.mat','err_arr')
 
 %% Plot gen. error w/ and w/o ext.
 
-% load('...','err_arr') % load errors without extendability
-% figure, plot(err_arr, 'linewidth', 4) 
-% 
-% hold on
-% load('...','err_arr') % load errors with extendability
-% plot(err_arr, 'linewidth', 4) 
-% 
-% xline(n, '--k', 'linewidth', 3)
-% xlabel('n'), ylabel('error'), legend({'Free', 'Free + Compatible', 'data'},'box','off', 'location', 'southeast')
-% set(gca,'fontsize',18)
-% set(gca, 'yscale', 'log')
-% % exportgraphics(gcf,'...'); 
+load('quantEnt_err_plot_noExt.mat','err_arr') % load errors without extendability
+figure, plot(err_arr, 'linewidth', 4) 
+
+hold on
+load('quantEnt_err_plot.mat','err_arr') % load errors with extendability
+plot(err_arr, 'linewidth', 4) 
+
+xline(n, '--k', 'linewidth', 3)
+xlabel('n'), ylabel('error'), legend({'Free', 'Free + Compatible', 'data'},'box','off', 'location', 'southeast')
+set(gca,'fontsize',18)
+set(gca, 'yscale', 'log')
+% exportgraphics(gcf,'quantEnt_learn.eps'); 
 
 %% Auxiliary function
 
