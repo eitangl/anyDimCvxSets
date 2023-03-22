@@ -1,7 +1,17 @@
 function c = coeffs_mod(p, deg_list, x)
-% Modified version of YALMIP's coeffs, returning coefficients corresponding
-% to monomials of given degrees.
+% Wrapper for YALMIP's coefficients, returning coefficients of a 
+% polynomial in a particular order
+% Inputs:
+%  - p: a polynomial of class sdpvar
+%  - deg_list: matrix of size (num. of monomials) x (num. of variables)
+%  each row of which gives the degree of a monomial in each variable
+%  - x: vector of length (num. of variables) of class sdpvar
 % 
+% Outputs:
+%  - c: vector of length (num. of monomials) giving the coefficient of the
+%  monomials whose degrees are in deg_list in the polynomial p
+%
+% Eitan Levin, March '23
 
 [c_p, v_p] = coefficients(p, x);
 

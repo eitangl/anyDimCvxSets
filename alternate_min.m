@@ -146,6 +146,6 @@ end
 init_best = find(errs_per_init(1:init) == min(errs_per_init(1:init)));
 disp(['Lowest training error = ' num2str(errs_per_init(init_best))])
 
-A = reshape(A_basis*alpha_arr(:,init_best), max(N_U)^2,n^2);
+A = reshape(A_basis*alpha_arr(:,init_best), max(N_U)^2,[]);
 B = reshape(B_basis*beta_arr(:,init_best), max(N_U)^2,[]);
 lambda = lambda_arr(init_best);
