@@ -4,13 +4,13 @@ rng(2023)
 
 %% Generate data
 n = 4;   % dim of data
-N = 100; % number of data points
+N = 50; % number of data points
 p = pi;  % learn p-norm for this p
 
 X = cell(N,1);        % matrix whose col's are data points
 dim_arr = zeros(N,1); % dimension / degree of each data point
 for ii = 1:N
-   dim = randi(n); % random dimension
+   dim = (rand() > .1) + 1; % random dimension
    dim_arr(ii)=dim;
 
    m = randn(dim, 1); % random vector
@@ -31,15 +31,15 @@ k = 1;
 d_V = 1; d_W = 2*k; d_U = 2*k; % generation degrees
 
 % get generators for B_n:
-Tperm_U = zeros(n,n,3);
-Tperm_U(:,:,1) = eye(n); Tperm_U(:,[1,2],1) = Tperm_U(:,[2,1],1);
-Tperm_U(:,:,2) = eye(n); Tperm_U(:,:,2) = Tperm_U(:, [n,1:n-1],2);
-Tperm_U(:,:,3) = eye(n); Tperm_U(1,1,3) = -1;
+Pi = zeros(n,n,3);
+Pi(:,:,1) = eye(n); Pi(:,[1,2],1) = Pi(:,[2,1],1);
+Pi(:,:,2) = eye(n); Pi(:,:,2) = Pi(:, [n,1:n-1],2);
+Pi(:,:,3) = eye(n); Pi(1,1,3) = -1;
 
 % get action of generators on R^{2n + 1}, viewed as two vectors and a scalar
 Pib = zeros(2*n+1,2*n+1,3);
-Pib(:,:,1) = blkdiag(Tperm_U(:,:,1),Tperm_U(:,:,1),1);
-Pib(:,:,2) = blkdiag(Tperm_U(:,:,2),Tperm_U(:,:,2),1);
+Pib(:,:,1) = blkdiag(Pi(:,:,1),Pi(:,:,1),1);
+Pib(:,:,2) = blkdiag(Pi(:,:,2),Pi(:,:,2),1);
 Pib(:,:,3) = eye(2*n+1); Pib(:,[1,n+1],3) = Pib(:,[n+1,1],3);
 
 % get induced action of generators on polynomials in 2n+1 variables
@@ -53,12 +53,12 @@ Pi_U = gen_algebra_map(Pib, x_ext, deg_list); % get action of generators
 %% Get bases for linear maps
 % generate matrices whose kernels are spaces of extendable, equivariant linear maps
 K_A = []; K_B = [];
-for ii = 1:size(Tperm_U,3)
+for ii = 1:size(Pi,3)
     % action of generators on symmetric matrices index by monomials:
     G = kron(sparse(Pi_U(:,:,ii)), sparse(Pi_U(:,:,ii)));
 
     % append equations for equivariance:
-    K_A = [K_A; kron(sparse(Tperm_U(:,:,ii))', speye(N_U^2)) - kron(speye(n), G)];
+    K_A = [K_A; kron(sparse(Pi(:,:,ii))', speye(N_U^2)) - kron(speye(n), G)];
     K_B = [K_B; kron(speye(N_U^2),G) - kron(G',speye(N_U^2))];
 end
 
@@ -80,21 +80,21 @@ for ii = 1:n
     N_U(ii) = round(sqrt(size(psi_U{ii},2)));
 end
 
-% add relevant equations
-for ii = 1:d_V 
-    K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
-end
-for ii = 1:d_U 
-    K_A = [K_A; kron(speye(n) - phi{ii}*phi{ii}', psi_U{ii}')];              % Ensure A' extends to a morphism
-end
-
-for ii = 1:d_U 
-    K_B = [K_B; kron(psi_U{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
-end
-
-for ii = 1:d_U 
-    K_B = [K_B; kron(speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
-end
+% add relevant equations [comment out to search over free descriptions without compatibility]
+% for ii = 1:d_V 
+%     K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
+% end
+% for ii = 1:d_U 
+%     K_A = [K_A; kron(speye(n) - phi{ii}*phi{ii}', psi_U{ii}')];              % Ensure A' extends to a morphism
+% end
+% 
+% for ii = 1:d_U 
+%     K_B = [K_B; kron(psi_U{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
+% end
+% 
+% for ii = 1:d_U 
+%     K_B = [K_B; kron(speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
+% end
 
 % Find bases for kernels:
 [~,SpRight] = spspaces(K_A,2); A_basis = SpRight{1}(:, SpRight{3});
@@ -102,7 +102,7 @@ end
 
 %% Fit description to data
 num_alts = 500; % max number of alternations
-num_inits = 5;  % number of initializations
+num_inits = 10;  % number of initializations
 
 % terminate alternation when relative change in error is below threshold
 % for a number of consecutive iterations:
@@ -127,14 +127,14 @@ m = 20; % dimension to which to extend
 % Set up higher-dim. description spaces:
 
 % Group action on R^m
-Tperm_U = zeros(m,m,3);
-Tperm_U(:,:,1) = eye(m); Tperm_U(:,[1,2],1) = Tperm_U(:,[2,1],1);
-Tperm_U(:,:,2) = eye(m); Tperm_U(:,:,2) = Tperm_U(:, [m,1:m-1],2);
-Tperm_U(:,:,3) = eye(m); Tperm_U(1,1,3) = -1;
+Pi = zeros(m,m,3);
+Pi(:,:,1) = eye(m); Pi(:,[1,2],1) = Pi(:,[2,1],1);
+Pi(:,:,2) = eye(m); Pi(:,:,2) = Pi(:, [m,1:m-1],2);
+Pi(:,:,3) = eye(m); Pi(1,1,3) = -1;
 % Group action on R^{2m+1}
 Pib = zeros(2*m+1,2*m+1,3);
-Pib(:,:,1) = blkdiag(Tperm_U(:,:,1),Tperm_U(:,:,1),1);
-Pib(:,:,2) = blkdiag(Tperm_U(:,:,2),Tperm_U(:,:,2),1);
+Pib(:,:,1) = blkdiag(Pi(:,:,1),Pi(:,:,1),1);
+Pib(:,:,2) = blkdiag(Pi(:,:,2),Pi(:,:,2),1);
 Pib(:,:,3) = eye(2*m+1); Pib(:,[1,m+1],3) = Pib(:,[m+1,1],3);
 % group action on monomials
 x_ext_b = sdpvar(2*m+1,1);
@@ -146,11 +146,11 @@ Pi_U = gen_algebra_map(Pib, x_ext_b, deg_list_b);
 
 % form coefficient matrices for linear system used to extend
 K_A = []; K_B = [];
-for ii = 1:size(Tperm_U,3)
+for ii = 1:size(Pi,3)
     G = kron(sparse(Pi_U(:,:,ii)), sparse(Pi_U(:,:,ii))); % group actions on symmetric matrices indexed by monomials:
     
     % add equivariance equations
-    K_A = [K_A; kron(sparse(Tperm_U(:,:,ii))', speye(N_U_b^2)) - kron(speye(m), G)];
+    K_A = [K_A; kron(sparse(Pi(:,:,ii))', speye(N_U_b^2)) - kron(speye(m), G)];
     K_B = [K_B; kron(speye(N_U_b^2),G) - kron(G',speye(N_U_b^2))];
 end
 
@@ -165,7 +165,7 @@ K_B = [K_B; kron(Tperm_U',speye(N_U_b^2)) - speye(N_U_b^4)];
 
 % Extend A, B by solving linear systems
 A_big = lsqr([K_A; kron(sparse(phi_b)', psi_U_b')],sparse([zeros(size(K_A,1),1); vec(A)]), 1e-16, 1e4);
-A_big = reshape(A_big, N_U_b^2, m^2);
+A_big = reshape(A_big, N_U_b^2, []);
 
 B_big = lsqr([K_B; kron(psi_U_b', psi_U_b')],sparse([zeros(size(K_B,1),1); vec(B)]), 1e-16, 1e4); 
 B_big = reshape(B_big, N_U_b^2,N_U_b^2);
@@ -187,7 +187,7 @@ for n_small = 1:m
     B_small = psi_U'*B_big*psi_U;
     
     % define variables for primal optimization problem
-    x_b_small = sdpvar(n_small);
+    x_b_small = sdpvar(n_small,1);
     y_b_small = sdpvar(N_U);
     t = sdpvar(1,1);
     
@@ -197,7 +197,7 @@ for n_small = 1:m
     
     % comptue error for each test point
     for ii = 1:M
-        x_test = randn(n_small); x_test = x_test / norm(x_test); % random unit-norm test vector
+        x_test = randn(n_small,1); x_test = x_test / norm(x_test); % random unit-norm test vector
 
         sln = ext_prob_small(x_test(:));                    % solve problem defining the function
         f_pred_test(ii) = sln(1) + lambda*norm(sln(2:end)); % save function value
@@ -209,11 +209,11 @@ end
 % save('...','err_arr')
 
 %% Plot error vs. dim with and without compatibility
-% load('...','err_arr') % load errors without extendability
+% load('lPi_err_plot_noExt.mat','err_arr') % load errors without extendability
 % figure, plot(err_arr, 'linewidth', 4) 
 % 
 % hold on
-% load('...','err_arr') % load errors with extendability
+% load('lPi_err_plot.mat','err_arr') % load errors with extendability
 % plot(err_arr, 'linewidth', 4) 
 % 
 % xline(n, '--k', 'linewidth', 3)

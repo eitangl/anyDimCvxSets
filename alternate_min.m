@@ -66,7 +66,7 @@ for init = 1:num_inits % for each init
     % randomly initialize A,B,lambda:
     A = reshape(A_basis*randn(size(A_basis,2),1),max(N_U)^2,[]);
     B = reshape(B_basis*randn(size(B_basis,2),1),max(N_U)^2,[]);
-    lambda = (lambda_init_max - lambda_min)*rand() + lambda_min;
+    lambda = (lambda_init_max - lambda_min)*rand() + lambda_min; 
 
     % Alternate
     err_curr = zeros(num_alts,1); % error at each iter

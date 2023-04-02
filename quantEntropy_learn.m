@@ -260,6 +260,6 @@ deg_list_small = get_deg_list(monolist(x_small,k),x_small); % list of degrees fo
 
 psi = gen_algebra_map(phi, x_small, deg_list_small); % action of embeddings on monomials
 
-phi = sparse(phi);
+phi = sparse(phi); psi = sparse(psi);
 phi = kron(phi,phi); psi = kron(psi,psi); % form embeddings acting on matrices
 end
