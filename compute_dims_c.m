@@ -2,7 +2,7 @@
 clear all, close all, clc
 k = 1; 
 
-imposeMorph1 = 1; % whether or not to impose (Morph1) from paper 
+imposeMorph1 = 0; % whether or not to impose (Morph1) from paper 
 if imposeMorph1
     imposeMorph2 = 0; % whether or not to also impose (Morph2)
 end

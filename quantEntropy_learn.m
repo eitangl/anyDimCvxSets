@@ -89,8 +89,6 @@ K_A = [K_A; kron(Tperm_V',speye(N_U^2)) - speye(n^2*N_U^2)];
 K_B = [K_B; kron(speye(N_W^2),Tperm_U) - speye(N_U^2*N_W^2)];
 K_B = [K_B; kron(Tperm_W',speye(N_U^2)) - speye(N_U^2*N_W^2)];
 
-% Add extendability conditions: [comment out to search over free descriptions without compatibility]
-
 % generate embeddings
 phi = cell(n,1); psi_U = cell(n,1); psi_W = cell(n,1);
 N_U = zeros(n, 1); N_W = zeros(n, 1); % number of monomials for each dim.
@@ -102,18 +100,18 @@ for ii = 1:n
     N_W(ii) = round(sqrt(size(psi_W{ii},2)));
 end
 
-% add relevant equations
-for ii = 1:d_V 
-    K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
-end
-
-for ii = 1:d_W 
-    K_B = [K_B; kron(psi_W{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
-end
-
-for ii = 1:d_U 
-    K_B = [K_B; kron(speye(N_W(end)^2) - psi_W{ii}*psi_W{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
-end
+% Add extendability conditions: [comment out to search over free descriptions without compatibility]
+% for ii = 1:d_V 
+%     K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
+% end
+% 
+% for ii = 1:d_W 
+%     K_B = [K_B; kron(psi_W{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
+% end
+% 
+% for ii = 1:d_U 
+%     K_B = [K_B; kron(speye(N_W(end)^2) - psi_W{ii}*psi_W{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
+% end
 
 % Find bases for kernels:
 [~,SpRight] = spspaces(K_A,2); A_basis = SpRight{1}(:, SpRight{3});

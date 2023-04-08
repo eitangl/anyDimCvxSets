@@ -3,18 +3,17 @@ clear all, close all, clc
 rng(2023)
 
 %% Generate data
-n = 4;   % dim of data
-N = 50; % number of data points
+n = 4;   % dim of description
+N = 50;  % number of data points
 p = pi;  % learn p-norm for this p
 
 X = cell(N,1);        % matrix whose col's are data points
 dim_arr = zeros(N,1); % dimension / degree of each data point
 for ii = 1:N
-   dim = (rand() > .1) + 1; % random dimension
+   dim = (rand() > .1) + 1; % random dimension <= 2
    dim_arr(ii)=dim;
 
    m = randn(dim, 1); % random vector
-    
    
    f_curr = norm(m,p); % evaluate function to be estimated:
    m = m./f_curr; % normalize data 
@@ -70,8 +69,6 @@ K_A = [K_A; kron(speye(n),Tperm_U) - speye(n*N_U^2)];
 K_B = [K_B; kron(speye(N_U^2),Tperm_U) - speye(N_U^4)];
 K_B = [K_B; kron(Tperm_U',speye(N_U^2)) - speye(N_U^4)];
 
-% Add extendability conditions: [comment out to search over free descriptions without compatibility]
-
 % generate embeddings
 phi = cell(n,1); psi_U = cell(n,1); 
 N_U = zeros(n, 1); % number of monomials for each dim.
@@ -80,7 +77,7 @@ for ii = 1:n
     N_U(ii) = round(sqrt(size(psi_U{ii},2)));
 end
 
-% add relevant equations [comment out to search over free descriptions without compatibility]
+% Add extendability conditions: [comment out to search over free descriptions without compatibility]
 % for ii = 1:d_V 
 %     K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
 % end

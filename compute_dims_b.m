@@ -4,7 +4,7 @@ k = 2;
 
 imposeMorph1 = 1; % whether or not to impose (Morph1) from paper 
 if imposeMorph1
-    imposeMorph2 = 1; % whether or not to also impose (Morph2)
+    imposeMorph2 = 0; % whether or not to also impose (Morph2)
 end
 
 d_V = 2; d_W = 2*k; d_U = 2*k; % generation degrees (= presentation degs)
