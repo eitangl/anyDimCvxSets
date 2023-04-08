@@ -9,6 +9,7 @@ Please install these packages and add them to MATLAB's path.
 ## Main functions
 1. Script to learn an SDP approximation of $\ell_p$ norms: [LpNorm_learn](/LpNorm_learn.m).
 2. Script to learn an SDP approximation of (variant of) quantum entropy: [quantEntropy_learn](/quantEntropy_learn.m).
-3. Scripts to compute dimensions for spaces of invariants / morphisms for the examples in Sec. 4.1: [compute_dims_a](/compute_dims_a.m), [compute_dims_b](/compute_dims_b.m), and [compute_dims_c](/compute_dims_c.m).
+3. Script to verify the graphon generation degree in Prop. 3.1: [check_graphon_gen_deg](https://github.com/eitangl/anyDimCvxSets/blob/main/check_graphon_gen_deg.m)
+4. Scripts to compute dimensions for spaces of invariants / morphisms for the examples in Sec. 4.1: [compute_dims_a](/compute_dims_a.m), [compute_dims_b](/compute_dims_b.m), and [compute_dims_c](/compute_dims_c.m).
 
 In case of issues or questions, please email Eitan (eitanl@caltech.edu)
