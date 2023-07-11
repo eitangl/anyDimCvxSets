@@ -4,7 +4,7 @@ rng(2023)
 
 %% Generate data
 n = 4;   % max degree of data
-N = 200; % number of points
+N = 400; % number of points
 
 X = cell(N,1);        % matrix whose col's are data points
 dim_arr = zeros(N,1); % dimension / degree of each data point
@@ -21,6 +21,8 @@ for ii = 1:N
    X{ii} = M(:);
 end
 f_vals = ones(N,1);  % function values on (normalized) data
+
+imposeExt = 0; % whether or not to impose extendability conditions
 
 %% Set up description spaces
 % We use description spaces U = Sym^2(Sym^{\leq k_U}(R^n)) and 
@@ -100,18 +102,20 @@ for ii = 1:n
     N_W(ii) = round(sqrt(size(psi_W{ii},2)));
 end
 
-% Add extendability conditions: [comment out to search over free descriptions without compatibility]
-% for ii = 1:d_V 
-%     K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
-% end
-% 
-% for ii = 1:d_W 
-%     K_B = [K_B; kron(psi_W{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
-% end
-% 
-% for ii = 1:d_U 
-%     K_B = [K_B; kron(speye(N_W(end)^2) - psi_W{ii}*psi_W{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
-% end
+% Add extendability conditions:
+if imposeExt
+    for ii = 1:d_V
+        K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
+    end
+
+    for ii = 1:d_W
+        K_B = [K_B; kron(psi_W{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
+    end
+
+    for ii = 1:d_U
+        K_B = [K_B; kron(speye(N_W(end)^2) - psi_W{ii}*psi_W{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
+    end
+end
 
 % Find bases for kernels:
 [~,SpRight] = spspaces(K_A,2); A_basis = SpRight{1}(:, SpRight{3});
@@ -232,20 +236,24 @@ for n_small = 1:m
     end
     err_arr(n_small) = mean(abs(f_true_test - f_pred_test)./f_true_test); % save mean relative error
 end
-% save('...','err_arr')
+if imposeExt
+    save('quantEnt_err_plot.mat','err_arr')
+else
+    save('quantEnt_err_plot_noExt.mat','err_arr')
+end
 
 %% Plot error vs. dim with and without compatibility
-% load('...','err_arr') % load errors without extendability
-% figure, plot(err_arr, 'linewidth', 4) 
-% 
-% hold on
-% load('...','err_arr') % load errors with extendability
-% plot(err_arr, 'linewidth', 4) 
-% 
-% xline(n, '--k', 'linewidth', 3)
-% xlabel('n'), ylabel('error'), legend({'Free', 'Free + Compatible', 'data'},'box','off', 'location', 'southeast')
-% set(gca,'fontsize',18)
-% set(gca, 'yscale', 'log')
+load('quantEnt_err_plot_noExt.mat','err_arr') % load errors without extendability
+figure, plot(err_arr, 'linewidth', 4) 
+
+hold on
+load('quantEnt_err_plot.mat','err_arr') % load errors with extendability
+plot(err_arr, 'linewidth', 4) 
+
+xline(n, '--k', 'linewidth', 3)
+xlabel('n'), ylabel('error'), legend({'Free', 'Free + Compatible'},'box','off', 'location', 'southeast')
+set(gca,'fontsize',18)
+set(gca, 'yscale', 'log')
 % % exportgraphics(gcf,'...'); 
 
 %% Auxiliary function

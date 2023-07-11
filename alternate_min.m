@@ -93,7 +93,14 @@ for init = 1:num_inits % for each init
             F = [F, -dot(z(:), A_curr*X{ii}) >= f_vals(ii) - err(ii)];
         end
         diags = optimize(F, norm(err), ops); 
-        assert(diags.problem == 0)           % assert that problem is solved
+        
+        if diags.problem == 4    % numerical problems (rare)
+            warning('Init. caused numerical problems')
+            err_bnd = inf;
+            break
+        elseif diags.problem ~= 0 % other problems
+            error(['Unknown error with YALMIP code ' num2str(diags.problem)])
+        end
         
         % optimize over A, B, lambda, err:
         F = [err >= 0, t >= 0, norm(B_var(:)) <= B_bnd, lambda_var >= lambda_min]; % nonnegativity, norm bound on B, lower bound on lambda
@@ -113,7 +120,14 @@ for init = 1:num_inits % for each init
             F = [F, -dot(z_curr(:), A_curr*X{ii}) >= f_vals(ii) - err(ii)];
         end
         diags = optimize(F, norm(err), ops);
-        assert(diags.problem == 0)
+        
+        if diags.problem == 4    % numerical problems (rare)
+            warning('Init. caused numerical problems')
+            err_bnd = inf;
+            break
+        elseif diags.problem ~= 0 % other problems
+            error(['Unknown error with YALMIP code ' num2str(diags.problem)])
+        end
 
         % update A, B, lambda:
         A = value(A_var); 
@@ -137,7 +151,7 @@ for init = 1:num_inits % for each init
     end
 
     % save error, A_basis and B_basis coefficients, regularization parameter:
-    errs_per_init(init) = norm(value(err))/norm(f_vals); 
+    errs_per_init(init) = err_bnd; 
     alpha_arr(:,init) = value(alpha_var); 
     beta_arr(:,init) = value(beta_var);   
     lambda_arr(init) = lambda;            

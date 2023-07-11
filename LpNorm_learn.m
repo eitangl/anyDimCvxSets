@@ -22,6 +22,8 @@ for ii = 1:N
 end
 f_vals = ones(N,1);  % function values on (normalized) data
 
+imposeExt = 0; % whether or not to impose extendability conditions
+
 %% Set up description spaces
 % We use description spaces U = W = Sym^2( Sym^{\leq k}( R^{2n+1} ) ) 
 % with corresponding PSD cones. 
@@ -77,21 +79,23 @@ for ii = 1:n
     N_U(ii) = round(sqrt(size(psi_U{ii},2)));
 end
 
-% Add extendability conditions: [comment out to search over free descriptions without compatibility]
-% for ii = 1:d_V 
-%     K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
-% end
-% for ii = 1:d_U 
-%     K_A = [K_A; kron(speye(n) - phi{ii}*phi{ii}', psi_U{ii}')];              % Ensure A' extends to a morphism
-% end
-% 
-% for ii = 1:d_U 
-%     K_B = [K_B; kron(psi_U{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
-% end
-% 
-% for ii = 1:d_U 
-%     K_B = [K_B; kron(speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
-% end
+% Add extendability conditions:
+if imposeExt
+    for ii = 1:d_V
+        K_A = [K_A; kron(phi{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')];   % Ensure A extends to a morphism
+    end
+    for ii = 1:d_U
+        K_A = [K_A; kron(speye(n) - phi{ii}*phi{ii}', psi_U{ii}')];              % Ensure A' extends to a morphism
+    end
+
+    for ii = 1:d_U
+        K_B = [K_B; kron(psi_U{ii}', speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}')]; % Ensure B extends to a morphism
+    end
+
+    for ii = 1:d_U
+        K_B = [K_B; kron(speye(N_U(end)^2) - psi_U{ii}*psi_U{ii}', psi_U{ii}')]; % Ensure B' extends to a morphism
+    end
+end
 
 % Find bases for kernels:
 [~,SpRight] = spspaces(K_A,2); A_basis = SpRight{1}(:, SpRight{3});
@@ -99,7 +103,7 @@ end
 
 %% Fit description to data
 num_alts = 500; % max number of alternations
-num_inits = 10;  % number of initializations
+num_inits = 1;  % number of initializations
 
 % terminate alternation when relative change in error is below threshold
 % for a number of consecutive iterations:
@@ -203,20 +207,25 @@ for n_small = 1:m
     end
     err_arr(n_small) = mean(abs(f_true_test - f_pred_test)./f_true_test); % save mean relative error
 end
-% save('...','err_arr')
+
+if imposeExt
+    save('lPi_err_plot.mat','err_arr')
+else
+    save('lPi_err_plot_noExt.mat','err_arr')
+end
 
 %% Plot error vs. dim with and without compatibility
-% load('lPi_err_plot_noExt.mat','err_arr') % load errors without extendability
-% figure, plot(err_arr, 'linewidth', 4) 
-% 
-% hold on
-% load('lPi_err_plot.mat','err_arr') % load errors with extendability
-% plot(err_arr, 'linewidth', 4) 
-% 
-% xline(n, '--k', 'linewidth', 3)
-% xlabel('n'), ylabel('error'), legend({'Free', 'Free + Compatible', 'data'},'box','off', 'location', 'southeast')
-% set(gca,'fontsize',18)
-% set(gca, 'yscale', 'log')
+load('lPi_err_plot_noExt.mat','err_arr') % load errors without extendability
+figure, plot(err_arr, 'linewidth', 4) 
+
+hold on
+load('lPi_err_plot.mat','err_arr') % load errors with extendability
+plot(err_arr, 'linewidth', 4) 
+
+xline(max(dim_arr), '--k', 'linewidth', 3)
+xlabel('n'), ylabel('error'), legend({'Free', 'Free + Compatible'},'box','off', 'location', 'southeast')
+set(gca,'fontsize',18)
+set(gca, 'yscale', 'log')
 % % exportgraphics(gcf,'...'); 
 
 %% Auxiliary function
